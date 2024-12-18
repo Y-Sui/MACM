@@ -1,5 +1,5 @@
 import re
-from utils.gpt_robots import generate_from_thinker
+from utils.gpt_robots import generate_from_thinker, generate_from_meta_reasoner
 from prompt.prompts import *
 
 def Analysis_conditions(question):
@@ -19,7 +19,7 @@ def Analysis_conditions(question):
     # answer = generate_from_GPT(messages, max_tokens = 256, model="gpt-4-1106-preview", temperature=0.7, n=1)[0]["message"]["content"]
     answer = generate_from_thinker(messages, 
                                    max_tokens = 256, 
-                                   model="gpt-4-1106-preview", 
+                                   model="gpt-4o-mini", 
                                    temperature=0.7,
                                    n=1)
     parts = answer.split("Objective:")
@@ -54,13 +54,13 @@ def Fix_conditions(question,Initial_conditions):
     # answer = generate_from_GPT(messages, max_tokens = 256, model="gpt-4-1106-preview", temperature=0.7, n=1)[0]["message"]["content"]
     fixed_condition = generate_from_thinker(messages, 
                                    max_tokens = 256, 
-                                   model="gpt-4-1106-preview", 
+                                   model="gpt-4o-mini", 
                                    temperature=0.7, 
                                    n=1)
     return fixed_condition
 
 
-def Think_thoughts(conditions,objectives):
+def Think_thoughts(conditions,objectives,feedbacks):
     '''
     Ask GPT to think about other condtions.
     Input: 
@@ -71,9 +71,13 @@ def Think_thoughts(conditions,objectives):
     messages = []
     numbered_conditions = "\n".join(f"{i + 1}. {condition}" for i, condition in enumerate(conditions))
     numbered_objective = "\n".join(f"{i + 1}. {objective}" for i, objective in enumerate(objectives))
+    if feedbacks:
+        numbered_feedbacks = "\n".join(f"{i + 1}. {feedback}" for i, feedback in enumerate(feedbacks))
+    else:
+        numbered_feedbacks = ""
     message = {
         "role": "user",
-        "content": Discover_new_conditions.format(Known_conditions = numbered_conditions,Objective = numbered_objective)
+        "content": Discover_new_conditions.format(Known_conditions = numbered_conditions,Objective = numbered_objective,Feedbacks = numbered_feedbacks)
     }
     messages.append(message)
     message = {
@@ -84,7 +88,7 @@ def Think_thoughts(conditions,objectives):
     # new_condition = generate_from_GPT(messages, max_tokens = 128, model="gpt-4-1106-preview", temperature=0.7, n=1)[0]["message"]["content"]
     new_condition = generate_from_thinker(messages, 
                                           max_tokens = 128, 
-                                          model="gpt-4-1106-preview", 
+                                          model="gpt-4o-mini", 
                                           temperature=0.7, 
                                           n=1)
     if new_condition:
@@ -97,6 +101,26 @@ def Think_thoughts(conditions,objectives):
         condition = [new_condition.strip()]
     return condition
 
+def Meta_reasoner(conditions, objectives, question):
+    messages = []
+    numbered_conditions = "\n".join(f"{i + 1}. {condition}" for i, condition in enumerate(conditions))
+    numbered_objective = "\n".join(f"{i + 1}. {objective}" for i, objective in enumerate(objectives))
+    message = {
+        "role": "user",
+        "content": Provide_meta_guidance.format(Known_conditions = numbered_conditions, Objective = numbered_objective, Question=question)
+    }
+    messages.append(message)
+    message = {
+        "role": "user",
+        "content": Guidance_answer
+    }
+    messages.append(message)
+    guidance = generate_from_meta_reasoner(messages,
+                                     max_tokens = 256,
+                                        model="gpt-4o-mini",
+                                        temperature=0.7,
+                                        n=1)
+    return guidance
 
 def Think_Steps(condition_from_thinker,objective_from_thinker):
     '''
@@ -117,7 +141,7 @@ def Think_Steps(condition_from_thinker,objective_from_thinker):
     # steps = generate_from_GPT(messages, max_tokens = 256, model="gpt-4-1106-preview", temperature=0.7, n=1)[0]["message"]["content"]
     steps = generate_from_thinker(messages, 
                                   max_tokens = 256, 
-                                  model="gpt-4-1106-preview", 
+                                  model="gpt-4o-mini", 
                                   temperature=0.7, 
                                   n=1)
     return steps

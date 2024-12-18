@@ -27,7 +27,7 @@ def Execute_steps(conditions,objectives,steps):
     messages.append(message)
     boxed_answer = generate_from_excutor(messages, 
                                          max_tokens = 512, 
-                                         model="gpt-4-1106-preview", 
+                                         model="gpt-4o-mini", 
                                          temperature=0.7, n=1)
     return boxed_answer
 

@@ -16,7 +16,7 @@ def Judge_condition(question,condition):
         "content": Judge_condtion.format(question = question,Initial_conditions = condition)
     }
     messages.append(message)
-    T_or_F = generate_from_judge(messages, max_tokens = 4, model="gpt-4-1106-preview", temperature=0.7, n=1)
+    T_or_F = generate_from_judge(messages, max_tokens = 4, model="gpt-4o-mini", temperature=0.7, n=1)
     return T_or_F
 
 
@@ -40,7 +40,7 @@ def Judge_statement(Known_condtions,condition_from_thinker):
         "content": T_or_F_prompt
     }     
     messages.append(message)
-    T_or_F = generate_from_judge(messages, max_tokens = 16, model="gpt-4-1106-preview", temperature=0.7, n=1)
+    T_or_F = generate_from_judge(messages, max_tokens = 16, model="gpt-4o-mini", temperature=0.7, n=1)
     return T_or_F
 
 
@@ -68,7 +68,7 @@ def Judge_answer(Known_condtions,objectives):
     messages.append(message)
     T_or_F = generate_from_judge(messages, 
                                  max_tokens = 4, 
-                                 model="gpt-4-1106-preview", 
+                                 model="gpt-4o-mini", 
                                  temperature=0.7, n=1)
     return T_or_F
 

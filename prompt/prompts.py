@@ -1,7 +1,7 @@
 # Thinker
 Analysis_conditions_objective = """
-Help me to analyze the conditions and the objective of a problem.
-You should only provide one objective.
+Help me to analyze the conditions and the objective of a problem. 
+The objective should cover the main goal of the problem and the constraints that need to be satisfied.
 The conditions must be derived directly from the problem; deductions or calculations to establish these conditions are not allowed.
 You don't need to provide me with a solution for the time being.
 
@@ -13,7 +13,7 @@ Conditions:
 2. He also earns a commission of 5$\\%$ on sales.
 3. In a particular month, Louis makes $25,000 in sales.
 Objective:
-Calculate Louis's total earnings for the month, which includes both his base salary and the commission from the sales.
+Calculate Louis's total earnings for the month, which includes both his base salary and the commission from the sales. The constraints are that the commission is 5$\\%$ of the sales and the base salary is fixed at $1,200.
 
 Example 2:
 Question:
@@ -24,6 +24,7 @@ Conditions:
 Objective:
 1. Find the coordinates of the other endpoint of the line segment.
 2. Find the sum of these coordinates.
+3. The constraints are that the midpoint of the line segment is at (1,1) and one endpoint is at (6,8).
 
 Real question:
 Question:
@@ -128,21 +129,27 @@ Fixed statement:
 # New condition:
 # """
 
+# Thinker for the new conditions
+
 Discover_new_conditions = """
 I have some known conditions:
 {Known_conditions}
 And my objective is:
 {Objective}
-Please derive one most direct conditions with logical relationships based on the known conditions.
+Feedback from my supervisor (if any):
+{Feedbacks}
+Please follow the supervisor's feedback to generate new conditions based on the known conditions.
+
 NOTE:
-1. You are only allowed to use the known conditions to derive new conclusions.
+1. You are only allowed to use the known conditions to generate new conditions (the new conditions are the trial-and-error process, aka your thinking process).
+2. You have to follow the feedback from the supervisor.
 2. You have to use code to perform the math calculation.
+3. Don't repeat the known conditions in the new conditions, only provide the new conditions.
 """
 
 Summarize_Answer = """
 Please summarize your answer by using the following format:
-Based on Known condition ... , we can get: ... 
-Reason: ...
+Based on Known condition and supervisor's feedback [provide the conditions and supervisor feedback], we can get: [new conditions here]
 """
 
 
@@ -455,6 +462,8 @@ I have some known conditions:
 {Known_condtions}
 And I want to {Objective}.
 Help me to determine if the objective can be obtained based on the known conditions or the objective is already one of the current conditions.
+Only when you find a direct solution in the known conditions, you can answer 'True'.
+You have to use code to verify the math calculation.
 """
 
 If_got_Answer_T_F = """
@@ -487,5 +496,42 @@ The steps that you should follow:
 You answer:
 """
 
-box_target = """Now you need to use \\boxed to mark your answer. Your final result should be converted to a float number.
-Please do not answer anything else, just give the float number marked with \\boxed."""
+box_target = """Now you need to use \\boxed to mark your answer. 
+If the task is to find a expression that fit the requirement, please just return the expression without calculation. 
+For example, if the task requires you find a expression that is equal to 24, please return the expressiion like 3 * (3 + 8) - 9 = 24.
+Otherwise, don't return anything else, just return float number in \\boxed.
+"""
+
+
+# Meta-reasoner
+
+Provide_meta_guidance = """
+I have some known conditions:
+{Known_conditions}
+And my objective is:
+{Objective}
+Rethink the requirement of the objective and reflect on the known conditions, then provide guidance for further steps.
+
+The reflection should include the following aspects:
+1. progress: Has the AI made sufficient progress towards solving the objective?
+2. strategy: What is the current strategy for the conditions we have? Is the current approach effective for the given task?
+3. accuracy: Are there any mistakes or misconceptions in the intermediate steps?
+4. efficiency: Is the AI taking unnecessary detours or repeating steps?
+
+Based on your analysis, provide guidance for further steps. Consider the following strategies:
+1. If progress is insufficient or the strategy seems ineffective, recommend starting again from the beginning with a change of approach.
+2. If there are mistakes in intermediate steps, suggest backtracking to the point where the error occurred.
+3. If the current approach is working well, encourage the AI to continue and provide specific suggestions for the next steps.
+4. If the AI seems stuck, propose alternative methods or perspectives to consider.
+
+NOTE:
+1. You are only allowed to provide one guidance based on the known conditions and objective.
+2. Your reflection should be concise and focused on the key aspects of progress, strategy, accuracy, and efficiency. Do not provide a detailed analysis of each step.
+2. You have to use code to perform the math calculation.
+"""
+
+Guidance_answer = """
+Please summarize your guidance by using the following format:
+Based on the known conditions and objective, we can get: [provide your reflection here]
+Guidance: [provide your exact guidance here]
+"""
