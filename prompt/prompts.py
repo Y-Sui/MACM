@@ -136,15 +136,17 @@ I have some known conditions:
 {Known_conditions}
 And my objective is:
 {Objective}
-Feedback from my supervisor (if any):
-{Feedbacks}
-Please follow the supervisor's feedback to generate new conditions based on the known conditions.
+Reflections from my supervisor (if any):
+{Reflections}
+Guidances from my supervisor (if any):
+{Guidances}
+Please follow the supervisor's feedback (reflections and guidances) to generate new conditions based on the known conditions.
 
 NOTE:
 1. You are only allowed to use the known conditions to generate new conditions (the new conditions are the trial-and-error process, aka your thinking process).
 2. You have to follow the feedback from the supervisor.
-2. You have to use code to perform the math calculation.
-3. Don't repeat the known conditions in the new conditions, only provide the new conditions.
+3. You have to use code to perform the math calculation.
+4. Don't repeat the known conditions in the new conditions, only provide the new conditions.
 """
 
 Summarize_Answer = """
@@ -464,6 +466,9 @@ And I want to {Objective}.
 Help me to determine if the objective can be obtained based on the known conditions or the objective is already one of the current conditions.
 Only when you find a direct solution in the known conditions, you can answer 'True'.
 You have to use code to verify the math calculation.
+
+Key Instructions:
+* Employ at least 10 distinct reasoning steps in the conditions. Otherwise, answer 'False'.
 """
 
 If_got_Answer_T_F = """
@@ -525,13 +530,12 @@ Based on your analysis, provide guidance for further steps. Consider the followi
 4. If the AI seems stuck, propose alternative methods or perspectives to consider.
 
 NOTE:
-1. You are only allowed to provide one guidance based on the known conditions and objective.
+1. You are only allowed to provide one guidance from the above four strategies based on the known conditions and objective.
 2. Your reflection should be concise and focused on the key aspects of progress, strategy, accuracy, and efficiency. Do not provide a detailed analysis of each step.
-2. You have to use code to perform the math calculation.
 """
 
 Guidance_answer = """
-Please summarize your guidance by using the following format:
+Please provide your guidance by using the following format:
 Based on the known conditions and objective, we can get: [provide your reflection here]
 Guidance: [provide your exact guidance here]
 """

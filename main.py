@@ -54,7 +54,7 @@ def check_if_got_answer(conditions,objectives,n):
             return False
     return True    
 
-def main(question, times, n, min_voters, max_voters):
+def main(question, steps, n, min_voters, max_voters):
     """
     Input question and get the final answer from muti-Agent got
     Input:
@@ -64,75 +64,86 @@ def main(question, times, n, min_voters, max_voters):
     """
     possible_answers = []
     use_meta_reasoner = True
-    try:
-        voter_count = 0
-        tie = True
-        
-        # Vote
-        while tie or voter_count < min_voters:
-            voter_count += 1
-            print(f"\n{voter_count} Thinker is analyzing the question...")
-            conditions,objectives = Analysis_conditions(question)
-            print("\n# conditions:", conditions)
-            print("\n# objectives:", objectives)
-            Initial_condition_numbers = len(conditions) # This line will be used for the $while$ mode
-            feedbacks = []
-            # Think thoughts
-            # while len(conditions) - Initial_condition_numbers <= times: 
-            for time in range(times): # Try to reduce the LLM queries.
-                if use_meta_reasoner:
-                    print(f"\n{voter_count} Meta-reasoner is providing the guidance...")
-                    feedbacks = Meta_reasoner(conditions,objectives,question)
-                    print("  \n# feedbacks:", feedbacks)
-                
-                print(f"\n# {voter_count} Thinker is thinking new thoughts...")
-                unchecked_conditions = Think_thoughts(conditions,objectives,feedbacks)
-                print("  \n# conditions before judge:", unchecked_conditions)
+    use_per_step_checker = False
+    # try:
+    voter_count = 0
+    tie = True
+    
+    # Vote
+    while tie or voter_count < min_voters:
+        voter_count += 1
+        print(f"\n{voter_count} Thinker is analyzing the question...")
+        conditions,objectives = Analysis_conditions(question)
+        print("\n# conditions:", "\n".join(conditions))
+        print("\n# objectives:", "\n".join(objectives))
+        Initial_condition_numbers = len(conditions) # This line will be used for the $while$ mode
+
+        # Think thoughts
+        # while len(conditions) - Initial_condition_numbers <= times: 
+        for _ in range(time_steps): # Try to reduce the LLM queries.
+            if use_meta_reasoner:
+                print(f"\n{voter_count} Meta-reasoner is providing the guidance...")
+                reflections, guidances = Meta_reasoner(conditions,objectives,question)
+                print("  \n# reflections:", reflections)
+                print("  \n# guidances:", guidances)
+            
+            print(f"\n# {voter_count} Thinker is thinking new thoughts...")
+            unchecked_conditions = Think_thoughts(conditions,objectives,reflections,guidances)
+            
+            if use_per_step_checker:
                 checked_conditions = []
-                
                 for unchecked_condition in unchecked_conditions:
                     print(f"\n{voter_count} Judge is checking conditions...")
                     if check_statement(conditions,unchecked_condition,n):
-                        start = unchecked_condition.find("we can get: ")
+                        start = unchecked_condition.lower().find("we can get: ") # add the lower() to avoid the case sensitive
                         if start != -1:
                             unchecked_condition = unchecked_condition[start + len("we can get: "):]
                         checked_conditions.append(unchecked_condition)
                 conditions = conditions + checked_conditions
-                print("  \n# conditions after judge:", conditions)
-                if_got_answer = check_if_got_answer(conditions,objectives,1)
-                if if_got_answer:
-                    print("  \n# The answer is found.")
-                    break
-            print(f"\n{voter_count} thinker is thinking steps...")
-            steps = Think_Steps(conditions,objectives)
-            print("  \n# steps:", steps)
             
-            print(f"\n{voter_count} Executor is trying to calculate the answer...")
-            final_answer = Execute_steps(conditions,objectives,steps)
-            print("  \n# final_answer:", final_answer)
+            else: # instead of using the per-step checker, we directly append the unchecked conditions to the conditions list
+                unchecked_conditions = ",".join(unchecked_conditions)
+                new_condition_start = unchecked_conditions.lower().find("we can get: ") # add the lower() to avoid the case sensitive
+                if new_condition_start != -1:
+                    unchecked_conditions = unchecked_conditions[new_condition_start + len("we can get: "):]
+                conditions.append(unchecked_conditions)
             
-            # Achieve one potiential answer
-            Answer = re.search(r'\\boxed\{(.*)(?=\})', final_answer)  
-            if Answer:
-                Answer_boxed = Answer.group(1)
-            else:
-                Answer_boxed = "No match found"
-            possible_answers.append(Answer_boxed)
-            if voter_count >= min_voters:
-                counter = Counter(possible_answers)
-                most_votes = counter.most_common(1)[0][1]  
-                tie_count = len(list(filter(lambda x: x[1] == most_votes, counter.items())))
-                
-                tie = tie_count > 1
-                print("\nThere is a tie vote. We need to add another voter.")
-                if voter_count >= max_voters:
-                    print("\nReached maximum voter limit.")
-                    break
-        most_possible_answer, count = counter.most_common(1)[0]
-        print(f"  \nThe final answer is {most_possible_answer}")
-        return most_possible_answer
-    except Exception as e:
-        print(f"Error processing file: {e}")
+            print("  \n# conditions after judge:", "\n".join(conditions))
+            if_got_answer = check_if_got_answer(conditions,objectives,1)
+            if if_got_answer:
+                print("  \n# The answer is found.")
+                break
+            
+        print(f"\n{voter_count} thinker is thinking steps...")
+        steps = Think_Steps(conditions,objectives)
+        print("  \n# steps:", steps)
+        
+        print(f"\n{voter_count} Executor is trying to calculate the answer...")
+        final_answer = Execute_steps(conditions,objectives,steps)
+        print("  \n# final_answer:", final_answer)
+        
+        # Achieve one potiential answer
+        Answer = re.search(r'\\boxed\{(.*)(?=\})', final_answer)  
+        if Answer:
+            Answer_boxed = Answer.group(1)
+        else:
+            Answer_boxed = "No match found"
+        possible_answers.append(Answer_boxed)
+        if voter_count >= min_voters:
+            counter = Counter(possible_answers)
+            most_votes = counter.most_common(1)[0][1]  
+            tie_count = len(list(filter(lambda x: x[1] == most_votes, counter.items())))
+            
+            tie = tie_count > 1
+            print("\nThere is a tie vote. We need to add another voter.")
+            if voter_count >= max_voters:
+                print("\nReached maximum voter limit.")
+                break
+    most_possible_answer, count = counter.most_common(1)[0]
+    print(f"  \nThe final answer is {most_possible_answer}")
+    return most_possible_answer
+    # except Exception as e:
+    #     print(f"Error processing file: {e}")
 
 
 def evaluate_dataset(folder_path, times, n, limit=5):
@@ -163,7 +174,7 @@ def evaluate_dataset(folder_path, times, n, limit=5):
                                           
 if __name__ == "__main__":
     n = 1 # verification times
-    times = 3 # The upper limit of the mining times
+    time_steps = 10 # The upper limit of the mining times
     min_voters = 3 # min number of voters
     max_voters = 5 # max number of voters
     question = """
@@ -212,5 +223,13 @@ Answer: ((5 + 5) + 5) + 9 = 24
     # Input your own question
     question = """
     Solve the game of 24 (use all 4 provided numbers exactly once each and +-/* to make 24) for [9 8 8 3]"""
+    
+    question="""
+    Prove that every bounded sequence in ℝ has a convergent subsequence. Provide a detailed explanation and proof.
+    """
+    
+    # question = """
+    # Write a Python function that implements the A (A-star) search algorithm to find the shortest path between two nodes in a graph. The function should handle graphs represented as adjacency lists, include an appropriate heuristic for estimating distances, and return both the optimal path and its total cost. Provide explanations and comments within your code.*
+    # """
 
-    main(question, times, n, min_voters, max_voters)  # Assuming these are defined elsewhere
+    main(question, time_steps, n, min_voters, max_voters)  # Assuming these are defined elsewhere

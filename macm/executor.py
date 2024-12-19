@@ -1,4 +1,4 @@
-from utils.gpt_robots import generate_from_excutor
+from utils.gpt_robots import generate_from_executor
 from utils.gpt import Find_Answer_from_GPT
 from prompt.prompts import *
 
@@ -25,7 +25,7 @@ def Execute_steps(conditions,objectives,steps):
         "content": box_target
     }      
     messages.append(message)
-    boxed_answer = generate_from_excutor(messages, 
+    boxed_answer = generate_from_executor(messages, 
                                          max_tokens = 512, 
                                          model="gpt-4o-mini", 
                                          temperature=0.7, n=1)
@@ -49,6 +49,6 @@ def Find_Answer(conditions,objectives):
     }
     messages.append(message)
     final_answer = Find_Answer_from_GPT(messages, max_tokens = 512, 
-                                        model="gpt-4-1106-preview", 
+                                        model="gpt-4o-mini", 
                                         temperature=0.7, n=1)
     return final_answer

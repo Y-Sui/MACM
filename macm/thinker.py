@@ -34,7 +34,7 @@ def Analysis_conditions(question):
         # Split objectives by newline for unnumbered items
         objectives = objectives_text.split('\n')
     objectives = [objective.strip() for objective in objectives]
-    return conditions,objectives
+    return conditions, objectives
 
 
 def Fix_conditions(question,Initial_conditions):
@@ -60,7 +60,7 @@ def Fix_conditions(question,Initial_conditions):
     return fixed_condition
 
 
-def Think_thoughts(conditions,objectives,feedbacks):
+def Think_thoughts(conditions,objectives,reflections,guidances):
     '''
     Ask GPT to think about other condtions.
     Input: 
@@ -71,13 +71,22 @@ def Think_thoughts(conditions,objectives,feedbacks):
     messages = []
     numbered_conditions = "\n".join(f"{i + 1}. {condition}" for i, condition in enumerate(conditions))
     numbered_objective = "\n".join(f"{i + 1}. {objective}" for i, objective in enumerate(objectives))
-    if feedbacks:
-        numbered_feedbacks = "\n".join(f"{i + 1}. {feedback}" for i, feedback in enumerate(feedbacks))
+    if reflections:
+        numbered_reflections = "\n".join(f"{i + 1}. {feedback}" for i, feedback in enumerate(reflections))
     else:
-        numbered_feedbacks = ""
+        numbered_reflections = ""
+    if guidances:
+        numbered_guidances = "\n".join(f"{i + 1}. {guidance}" for i, guidance in enumerate(guidances))
+    else:
+        numbered_guidances = ""
     message = {
         "role": "user",
-        "content": Discover_new_conditions.format(Known_conditions = numbered_conditions,Objective = numbered_objective,Feedbacks = numbered_feedbacks)
+        "content": Discover_new_conditions.format(
+            Known_conditions = numbered_conditions,
+            Objective = numbered_objective,
+            Reflections = numbered_reflections,
+            Guidances = numbered_guidances
+            )
     }
     messages.append(message)
     message = {
@@ -107,7 +116,10 @@ def Meta_reasoner(conditions, objectives, question):
     numbered_objective = "\n".join(f"{i + 1}. {objective}" for i, objective in enumerate(objectives))
     message = {
         "role": "user",
-        "content": Provide_meta_guidance.format(Known_conditions = numbered_conditions, Objective = numbered_objective, Question=question)
+        "content": Provide_meta_guidance.format(
+            Known_conditions = numbered_conditions, 
+            Objective = numbered_objective, 
+            Question=question)
     }
     messages.append(message)
     message = {
@@ -115,12 +127,17 @@ def Meta_reasoner(conditions, objectives, question):
         "content": Guidance_answer
     }
     messages.append(message)
-    guidance = generate_from_meta_reasoner(messages,
+    response = generate_from_meta_reasoner(messages,
                                      max_tokens = 256,
                                         model="gpt-4o-mini",
                                         temperature=0.7,
                                         n=1)
-    return guidance
+    guidance = response.split("Guidance:")[1].strip()
+    start_reflection = response.split("Guidance:")[0].strip().lower().find("we can get: ") # add the lower() to avoid the case sensitive
+    if start_reflection != -1:
+        reflection = response.split("Guidance:")[0].strip()[start_reflection + len("we can get: "):]
+    
+    return reflection, guidance
 
 def Think_Steps(condition_from_thinker,objective_from_thinker):
     '''

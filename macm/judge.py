@@ -44,7 +44,7 @@ def Judge_statement(Known_condtions,condition_from_thinker):
     return T_or_F
 
 
-def Judge_answer(Known_condtions,objectives):
+def Judge_answer(known_condtions,objectives):
     '''
     Ask GPT to Judge if we already got the answer
     Input:
@@ -53,7 +53,7 @@ def Judge_answer(Known_condtions,objectives):
     False / True ,answer (Str)
     '''
     messages = []
-    numbered_conditions = "\n".join(f"{i + 1}. {condition}" for i, condition in enumerate(Known_condtions))
+    numbered_conditions = "\n".join(f"{i + 1}. {condition}" for i, condition in enumerate(known_condtions))
     numbered_Objective = "\n".join(f"{i + 1}. {objective}" for i, objective in enumerate(objectives))
     message = {
         "role": "user",
