@@ -8,6 +8,8 @@ from macm.executor import Execute_steps
 from macm.judge import Judge_statement, Judge_answer, Judge_condition
 from macm.thinker import Analysis_conditions, Think_thoughts, Think_Steps, Meta_reasoner
 
+from data.game_24 import evaluator as game_24_evaluator
+
 def check_condition(question,condition, n):
     """
     Use several Judges to check the statement
@@ -174,7 +176,7 @@ def evaluate_dataset(folder_path, times, n, limit=5):
                                           
 if __name__ == "__main__":
     n = 1 # verification times
-    time_steps = 10 # The upper limit of the mining times
+    time_steps = 5 # The upper limit of the mining times
     min_voters = 3 # min number of voters
     max_voters = 5 # max number of voters
     question = """
@@ -232,4 +234,6 @@ Answer: ((5 + 5) + 5) + 9 = 24
     # Write a Python function that implements the A (A-star) search algorithm to find the shortest path between two nodes in a graph. The function should handle graphs represented as adjacency lists, include an appropriate heuristic for estimating distances, and return both the optimal path and its total cost. Provide explanations and comments within your code.*
     # """
 
-    main(question, time_steps, n, min_voters, max_voters)  # Assuming these are defined elsewhere
+    # main(question, time_steps, n, min_voters, max_voters)  # Assuming these are defined elsewhere
+    
+    game_24_evaluator.evaluate_game_of_24(main, debug=True, model_name="gpt-4o-mini", steps=time_steps, n=n, min_voters=min_voters, max_voters=max_voters)
